@@ -1,4 +1,3 @@
-# JET-IOT
 # 🚀 IoT Automation Project Repository for Gates and Alarms 🚪🔒
 
 Welcome to the repository of our exciting IoT automation project for gates, alarms, and more! Here you will find all the code and documentation related to our team's endeavor into the world of Internet of Things (IoT).
