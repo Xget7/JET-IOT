@@ -14,27 +14,43 @@
 #include "WiFi.h"
 #include "PubSubClient.h"
 #include "Preferences.h"
+#include <WiFiClientSecure.h>
+#include <ArduinoJson.h>
 
-// Declare global variables and objects
-extern HTTPClient client;
-extern PubSubClient mqttClient;
-extern Preferences preferences;
-
-extern char *server;
-extern int port;
-
-// Define the structure for register request
-struct register_request
+ struct Register_request
 {
    String user_id;
    String device_id;
    String device_type;
 };
 
-// Function declarations
-void reconnect();
-void mqttLoop();
-void initMqttAndApi(std::function<void(char*, uint8_t*, unsigned int)> callback);
-bool registerDevice(register_request request);
+class MqttHelper {
+  
+public:
+   MqttHelper();
+   ~MqttHelper();
+
+   Preferences preferences;
+   HTTPClient client;
+   WiFiClient esp32Client;
+   PubSubClient mqttClient;
+   void reconnect();
+   void mqttLoop();
+   void initMqttAndApi(std::function<void(char*, uint8_t*, unsigned int)> callback);
+   char *server;
+   const char *willMessage;
+   int port;
+   
+private:
+  String message;
+  
+};
+
+
 
 #endif
+
+
+
+// Function declarations
+

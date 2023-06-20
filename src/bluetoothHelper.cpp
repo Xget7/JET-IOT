@@ -1,4 +1,5 @@
 #include "bluetoothHelper.h"
+MqttHelper helper;
 
 BluetoothHelper::BluetoothHelper() {}
 
@@ -7,34 +8,20 @@ BluetoothHelper::~BluetoothHelper() {}
 void BluetoothHelper::handleConnectionStatus() {
   if (SerialBT.available()) {
       SerialBT.write('WIFI:CONNECTED&');
-    bool isRegistered = preferences.getBool(REGISTERED_ESP, false);
-    if (!isRegistered) {
-      register_request request;
-      String userId = preferences.getString(USER_UID, "null");
-      String device_type = preferences.getString(DEVICE_TYPE, "null");
-
-      request.user_id = userId.substring(0, userId.length() - 1);
-      request.device_id = WiFi.macAddress();
-      request.device_type = device_type.substring(0, device_type.length() - 1);
-
-      if (registerDevice(request)) {
-        SerialBT.write('DEVICE:REGISTERED:TRUE&');
-        preferences.putBool(REGISTERED_ESP, true);
-        SerialBT.end();
-      } else {
-        SerialBT.write('DEVICE:REGISTERED:FALSE&');
-      }
-    }
+      bool isRegistered = helper.preferences.getBool(REGISTERED_ESP, false);
   }
 }
 
 
 
-void BluetoothHelper::setup(Preferences& preferences) {
-  SerialBT.begin("JET-32-0");
-  preferences.begin("JET", false);
-  preferences.getString(WIFI_SSID, "null").toCharArray(mySSID, 64);
-  preferences.getString(WIFI_PASSWORD, "null").toCharArray(myPassword, 64);
+void BluetoothHelper::setup(Preferences& preferences, boolean initBluetooth) {
+  if (initBluetooth){
+    SerialBT.begin("JET-IOT");
+  }
+
+  helper.preferences.begin("JET-IOT", false);
+  helper.preferences.getString(WIFI_SSID, "null").toCharArray(mySSID, 64);
+  helper.preferences.getString(WIFI_PASSWORD, "null").toCharArray(myPassword, 64);
   byte lastChar = strlen(mySSID) - 1;
   mySSID[lastChar] = '\0';
   lastChar = strlen(myPassword) - 1;
@@ -53,16 +40,18 @@ void BluetoothHelper::loop() {
         String ssid = message.substring(5);
         // Do something with the received SSID
         Serial.println("Received SSID: " + ssid);
-        preferences.putString(WIFI_SSID, ssid);
+        helper.preferences.putString(WIFI_SSID, ssid);
+        SerialBT.write('SSID-RECEIVED');
       }
       else if (message.startsWith("PASSWORD:")) {
-        // Extract the password from the message
+        // Extract the password from the messagess
         String password = message.substring(9);
         // Do something with the received password
         Serial.println("Received password: " + password);
-        preferences.putString(WIFI_PASSWORD, password);
-      }
-      else if (message == "conn") {
+        helper.preferences.putString(WIFI_PASSWORD, password);
+      }else if (message == "conn") {
+        SerialBT.write('CONNECTION_END-RECEIVED');
+        SerialBT.end();
         byte lastChar = strlen(mySSID) - 1;
         mySSID[lastChar] = '\0';
         lastChar = strlen(myPassword) - 1;
@@ -73,13 +62,16 @@ void BluetoothHelper::loop() {
         String userId = message.substring(8);
         // Do something with the received user ID
         Serial.println("Received UID: " + userId);
-        preferences.putString(USER_UID, userId);
+        helper.preferences.putString(USER_UID, userId);
+        SerialBT.write('USER_ID-RECEIVED');
+
       }
       else if (message.startsWith("DEVICE_TYPE:")) {
         String deviceType = message.substring(12);
         // Do something with the received device type
         Serial.println("Received Device: " + deviceType);
-        preferences.putString(DEVICE_TYPE, deviceType);
+        helper.preferences.putString(DEVICE_TYPE, deviceType);
+        SerialBT.write('DEVICE_TYPE-RECEIVED');
       }
       message = "";
     }
@@ -87,3 +79,20 @@ void BluetoothHelper::loop() {
 }
 
 
+//83
+// 73
+// 58
+// 97
+// 99
+// 105
+// 97 
+// 10
+
+// 83
+// 73
+// 58
+// 97
+// 99
+// 105
+// 97 
+// 10
