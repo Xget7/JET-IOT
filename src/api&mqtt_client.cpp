@@ -28,11 +28,20 @@ void MqttHelper::reconnect() {
       serializeJson(jsonDoc, offlinePayLoad);
       String userId = preferences.getString(USER_UID, "null");
       userId = userId.substring(0, userId.length() - 1);
-      String willTopic = userId + "/" + macAddress + "/status";
-    
+
+      //real willtopic
+      // String willTopic = userId + "/" + macAddress + "/status";
+      // mock
+      String willTopic = "e134b077-d0db-48a5-ab5a-0512c460559a/7821849C1782/data";
+
+
     if (mqttClient.connect(&macAddress[0], "xget", "eltupa2005", (char*)willTopic.c_str(), 0, true, (char*)offlinePayLoad.c_str())) { 
         Serial.println("Connected");
-        String topic = userId + "/" + macAddress + "/state";
+
+       //real topic
+        // String topic = userId + "/" + macAddress + "/state";
+         //mock topic
+       String topic ="e134b077-d0db-48a5-ab5a-0512c460559a/7821849C1782/data";
         // Subscribe to the MQTT topic
         mqttClient.subscribe(topic.c_str());
         Serial.println(topic.c_str());
